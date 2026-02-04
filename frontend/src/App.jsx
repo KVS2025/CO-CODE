@@ -31,7 +31,7 @@ const RecruitmentSystem = () => {
     { id: 4, name: 'Michael Park', position: 'UX Designer', stage: 'Offer Extended', score: 9.0, appliedDate: '2024-01-16', status: 'Offer Extended' },
   ]);
 
-  const [documents, setDocuments] = useState([
+  const [documents] = useState([
     { id: 1, candidateName: 'Michael Park', position: 'UX Designer', status: 'Pending', uploadedDocs: 3, requiredDocs: 5, lastUpdated: '2024-01-22' },
     { id: 2, candidateName: 'Sarah Chen', position: 'Senior React Developer', status: 'In Review', uploadedDocs: 4, requiredDocs: 5, lastUpdated: '2024-01-21' },
   ]);
@@ -89,13 +89,13 @@ const RecruitmentSystem = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -373,7 +373,7 @@ const RecruitmentSystem = () => {
                       <span className="text-sm font-semibold text-slate-900">{doc.uploadedDocs}/{doc.requiredDocs}</span>
                     </div>
                     <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-slate-900 to-slate-700" style={{ width: `${(doc.uploadedDocs / doc.requiredDocs) * 100}%` }}></div>
+                      <div className="h-full bg-linear-to-r from-slate-900 to-slate-700" style={{ width: `${(doc.uploadedDocs / doc.requiredDocs) * 100}%` }}></div>
                     </div>
                   </div>
 
