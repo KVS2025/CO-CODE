@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { ChevronRight, Upload, FileCheck, CheckCircle, Clock, Users, FileText, Search, Plus, Edit2, Trash2, Eye, Download, AlertCircle, X, BarChart3, Bell, CalendarPlus  } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Upload, FileCheck, CheckCircle, Clock, Users, FileText, Search, Plus, Edit2, Trash2, Eye, Download, AlertCircle, X, BarChart3, Bell, CalendarPlus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import dataService from '../services/DataService';
 
 
 const RecruitmentSystem = () => {
@@ -10,27 +11,48 @@ const RecruitmentSystem = () => {
   const [showDocModal, setShowDocModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+
   // Form state for new vacancy
   const [newVacancy, setNewVacancy] = useState({
     title: '',
     department: '',
     level: '',
-    positions: ''
+    positions: '',
+    location: '',
+    type: 'Full-time',
+    salary: '',
+    deadline: '',
+    description: '',
+    requirements: '',
+    responsibilities: '',
+    benefits: ''
   });
 
-  // Mock data
-  const [vacancies, setVacancies] = useState([
-    { id: 1, title: 'Senior React Developer', department: 'Engineering', posted: '2024-01-15', applications: 24, status: 'Open' },
-    { id: 2, title: 'Product Manager', department: 'Product', posted: '2024-01-10', applications: 18, status: 'Open' },
-    { id: 3, title: 'UX Designer', department: 'Design', posted: '2024-01-05', applications: 12, status: 'Closed' },
-  ]);
+  // Data from DataService
+  const [vacancies, setVacancies] = useState([]);
+  const [candidates, setCandidates] = useState([]);
 
-  const [candidates, setCandidates] = useState([
-    { id: 1, name: 'Sarah Chen', position: 'Senior React Developer', stage: 'Technical Interview', score: 8.5, appliedDate: '2024-01-20', status: 'In Progress' },
-    { id: 2, name: 'James Wilson', position: 'Senior React Developer', stage: 'HR Interview', score: 7.8, appliedDate: '2024-01-18', status: 'In Progress' },
-    { id: 3, name: 'Emma Rodriguez', position: 'Product Manager', stage: 'Shortlisted', score: 8.2, appliedDate: '2024-01-21', status: 'Pending' },
-    { id: 4, name: 'Michael Park', position: 'UX Designer', stage: 'Offer Extended', score: 9.0, appliedDate: '2024-01-16', status: 'Offer Extended' },
-  ]);
+  // Load data from DataService on mount
+  useEffect(() => {
+    // Initial load
+    setVacancies(dataService.getVacancies());
+    setCandidates(dataService.getCandidates());
+
+    // Subscribe to updates
+    const unsubscribeVacancies = dataService.subscribe('vacancies', () => {
+      setVacancies(dataService.getVacancies());
+    });
+
+    const unsubscribeCandidates = dataService.subscribe('candidates', () => {
+      setCandidates(dataService.getCandidates());
+    });
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      unsubscribeVacancies();
+      unsubscribeCandidates();
+    };
+  }, []);
 
   const [documents] = useState([
     { id: 1, candidateName: 'Michael Park', position: 'UX Designer', status: 'Pending', uploadedDocs: 3, requiredDocs: 5, lastUpdated: '2024-01-22' },
@@ -69,31 +91,56 @@ const RecruitmentSystem = () => {
   const handleAddVacancy = () => {
     if (newVacancy.title && newVacancy.department) {
       const vacancy = {
-        id: vacancies.length + 1,
         title: newVacancy.title,
         department: newVacancy.department,
-        posted: new Date().toISOString().split('T')[0],
-        applications: 0,
-        status: 'Open'
+        level: newVacancy.level || 'Mid-level',
+        positions: parseInt(newVacancy.positions) || 1,
+        location: newVacancy.location || 'Remote',
+        type: newVacancy.type || 'Full-time',
+        salary: newVacancy.salary || 'Competitive',
+        deadline: newVacancy.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        openings: parseInt(newVacancy.positions) || 1,
+        description: newVacancy.description || 'Great opportunity to join our team.',
+        requirements: newVacancy.requirements ? newVacancy.requirements.split('\n').filter(r => r.trim()) : ['Experience required'],
+        responsibilities: newVacancy.responsibilities ? newVacancy.responsibilities.split('\n').filter(r => r.trim()) : ['Various responsibilities'],
+        benefits: newVacancy.benefits ? newVacancy.benefits.split(',').map(b => b.trim()).filter(b => b) : ['Health Insurance', 'Flexible Hours']
       };
-      setVacancies([...vacancies, vacancy]);
+
+      dataService.addVacancy(vacancy);
 
       // Reset form
       setNewVacancy({
         title: '',
         department: '',
         level: '',
-        positions: ''
+        positions: '',
+        location: '',
+        type: 'Full-time',
+        salary: '',
+        deadline: '',
+        description: '',
+        requirements: '',
+        responsibilities: '',
+        benefits: ''
       });
       setShowVacancyForm(false);
-      alert('Vacancy added successfully!');
+      alert('Vacancy added successfully! It will now appear on the candidate dashboard.');
     } else {
       alert('Please fill in title and department');
     }
   };
 
-  const handleDeleteVacancy = (id) => setVacancies(vacancies.filter(v => v.id !== id));
-  const handleDeleteCandidate = (id) => setCandidates(candidates.filter(c => c.id !== id));
+  const handleDeleteVacancy = (id) => {
+    if (window.confirm('Are you sure you want to delete this vacancy?')) {
+      dataService.deleteVacancy(id);
+    }
+  };
+
+  const handleDeleteCandidate = (id) => {
+    if (window.confirm('Are you sure you want to remove this candidate?')) {
+      dataService.deleteCandidate(id);
+    }
+  };
 
   const getStageColor = (stage) => {
     const colors = {
@@ -196,14 +243,14 @@ const RecruitmentSystem = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
                     type="text"
-                    placeholder="Job Title"
+                    placeholder="Job Title *"
                     value={newVacancy.title}
                     onChange={(e) => setNewVacancy({ ...newVacancy, title: e.target.value })}
                     className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                   <input
                     type="text"
-                    placeholder="Department"
+                    placeholder="Department *"
                     value={newVacancy.department}
                     onChange={(e) => setNewVacancy({ ...newVacancy, department: e.target.value })}
                     className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
@@ -225,12 +272,66 @@ const RecruitmentSystem = () => {
                     onChange={(e) => setNewVacancy({ ...newVacancy, positions: e.target.value })}
                     className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
+                  <input
+                    type="text"
+                    placeholder="Location (e.g., Remote, New York, NY)"
+                    value={newVacancy.location}
+                    onChange={(e) => setNewVacancy({ ...newVacancy, location: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Salary Range (e.g., $100k - $120k)"
+                    value={newVacancy.salary}
+                    onChange={(e) => setNewVacancy({ ...newVacancy, salary: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <input
+                    type="date"
+                    placeholder="Application Deadline"
+                    value={newVacancy.deadline}
+                    onChange={(e) => setNewVacancy({ ...newVacancy, deadline: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <select
+                    value={newVacancy.type}
+                    onChange={(e) => setNewVacancy({ ...newVacancy, type: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  >
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                  </select>
                 </div>
                 <textarea
                   placeholder="Job Description"
                   rows="4"
+                  value={newVacancy.description}
+                  onChange={(e) => setNewVacancy({ ...newVacancy, description: e.target.value })}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                 ></textarea>
+                <textarea
+                  placeholder="Requirements (one per line)"
+                  rows="3"
+                  value={newVacancy.requirements}
+                  onChange={(e) => setNewVacancy({ ...newVacancy, requirements: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                ></textarea>
+                <textarea
+                  placeholder="Responsibilities (one per line)"
+                  rows="3"
+                  value={newVacancy.responsibilities}
+                  onChange={(e) => setNewVacancy({ ...newVacancy, responsibilities: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                ></textarea>
+                <input
+                  type="text"
+                  placeholder="Benefits (comma-separated)"
+                  value={newVacancy.benefits}
+                  onChange={(e) => setNewVacancy({ ...newVacancy, benefits: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
                 <div className="flex gap-3">
                   <button
                     onClick={handleAddVacancy}
@@ -241,7 +342,20 @@ const RecruitmentSystem = () => {
                   <button
                     onClick={() => {
                       setShowVacancyForm(false);
-                      setNewVacancy({ title: '', department: '', level: '', positions: '' });
+                      setNewVacancy({
+                        title: '',
+                        department: '',
+                        level: '',
+                        positions: '',
+                        location: '',
+                        type: 'Full-time',
+                        salary: '',
+                        deadline: '',
+                        description: '',
+                        requirements: '',
+                        responsibilities: '',
+                        benefits: ''
+                      });
                     }}
                     className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                   >
