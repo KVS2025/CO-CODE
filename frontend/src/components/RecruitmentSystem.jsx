@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronRight, Upload, FileCheck, CheckCircle, Clock, Users, FileText, Search, Plus, Edit2, Trash2, Eye, Download, AlertCircle, X } from 'lucide-react';
+import { ChevronRight, Upload, FileCheck, CheckCircle, Clock, Users, FileText, Search, Plus, Edit2, Trash2, Eye, Download, AlertCircle, X, BarChart3, Bell, CalendarPlus  } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 
 const RecruitmentSystem = () => {
   const [activeTab, setActiveTab] = useState('hiring');
@@ -8,7 +10,6 @@ const RecruitmentSystem = () => {
   const [showDocModal, setShowDocModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-
   // Form state for new vacancy
   const [newVacancy, setNewVacancy] = useState({
     title: '',
@@ -36,6 +37,34 @@ const RecruitmentSystem = () => {
     { id: 2, candidateName: 'Sarah Chen', position: 'Senior React Developer', status: 'In Review', uploadedDocs: 4, requiredDocs: 5, lastUpdated: '2024-01-21' },
   ]);
 
+  // Attrition by quartile (yearly)
+  const attritionData = [
+    { quartile: 'Q1', left: 6 },
+    { quartile: 'Q2', left: 9 },
+    { quartile: 'Q3', left: 4 },
+    { quartile: 'Q4', left: 7 },
+  ];
+
+  // Attendance per employee
+  const attendanceData = [
+    { id: 'EMP101', name: 'Sarah Chen', role: 'Frontend Dev', attendance: 94 },
+    { id: 'EMP102', name: 'James Wilson', role: 'Backend Dev', attendance: 89 },
+    { id: 'EMP103', name: 'Emma Rodriguez', role: 'Product Manager', attendance: 96 },
+    { id: 'EMP104', name: 'Michael Park', role: 'UX Designer', attendance: 91 },
+  ];
+
+  const [notices, setNotices] = useState([
+    {
+      id: 1,
+      title: 'Attendance Policy Update',
+      content: 'Minimum 3 days work-from-office mandatory.',
+      date: '2024-02-01',
+    },
+  ]);
+
+  const [newNotice, setNewNotice] = useState({ title: '', content: '' });
+
+
   // ✅ FIXED: Handle adding new vacancy
   const handleAddVacancy = () => {
     if (newVacancy.title && newVacancy.department) {
@@ -48,7 +77,7 @@ const RecruitmentSystem = () => {
         status: 'Open'
       };
       setVacancies([...vacancies, vacancy]);
-      
+
       // Reset form
       setNewVacancy({
         title: '',
@@ -119,17 +148,18 @@ const RecruitmentSystem = () => {
               { id: 'hiring', label: 'Hiring & Vacancies', icon: FileText },
               { id: 'candidates', label: 'Candidates', icon: Users },
               { id: 'documents', label: 'Document Verification', icon: FileCheck },
+              { id: 'stats', label: 'Stats', icon: BarChart3 },
+              { id: 'notice', label: 'Notice', icon: Bell },
             ].map(tab => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-all duration-200 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-slate-900 text-slate-900 bg-slate-50'
-                      : 'border-transparent text-slate-600 hover:text-slate-900'
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-all duration-200 font-medium text-sm ${activeTab === tab.id
+                    ? 'border-slate-900 text-slate-900 bg-slate-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -164,23 +194,23 @@ const RecruitmentSystem = () => {
               <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 animate-slideDown">
                 <h3 className="text-lg font-semibold text-slate-900">Create New Vacancy</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input 
-                    type="text" 
-                    placeholder="Job Title" 
+                  <input
+                    type="text"
+                    placeholder="Job Title"
                     value={newVacancy.title}
-                    onChange={(e) => setNewVacancy({...newVacancy, title: e.target.value})}
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" 
+                    onChange={(e) => setNewVacancy({ ...newVacancy, title: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
-                  <input 
-                    type="text" 
-                    placeholder="Department" 
+                  <input
+                    type="text"
+                    placeholder="Department"
                     value={newVacancy.department}
-                    onChange={(e) => setNewVacancy({...newVacancy, department: e.target.value})}
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" 
+                    onChange={(e) => setNewVacancy({ ...newVacancy, department: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
-                  <select 
+                  <select
                     value={newVacancy.level}
-                    onChange={(e) => setNewVacancy({...newVacancy, level: e.target.value})}
+                    onChange={(e) => setNewVacancy({ ...newVacancy, level: e.target.value })}
                     className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     <option value="">Select Level</option>
@@ -188,30 +218,30 @@ const RecruitmentSystem = () => {
                     <option value="Mid-level">Mid-level</option>
                     <option value="Senior">Senior</option>
                   </select>
-                  <input 
-                    type="number" 
-                    placeholder="Number of Positions" 
+                  <input
+                    type="number"
+                    placeholder="Number of Positions"
                     value={newVacancy.positions}
-                    onChange={(e) => setNewVacancy({...newVacancy, positions: e.target.value})}
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" 
+                    onChange={(e) => setNewVacancy({ ...newVacancy, positions: e.target.value })}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                 </div>
-                <textarea 
-                  placeholder="Job Description" 
-                  rows="4" 
+                <textarea
+                  placeholder="Job Description"
+                  rows="4"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                 ></textarea>
                 <div className="flex gap-3">
-                  <button 
+                  <button
                     onClick={handleAddVacancy}
                     className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
                   >
                     Create Vacancy
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setShowVacancyForm(false);
-                      setNewVacancy({title: '', department: '', level: '', positions: ''});
+                      setNewVacancy({ title: '', department: '', level: '', positions: '' });
                     }}
                     className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                   >
@@ -230,11 +260,10 @@ const RecruitmentSystem = () => {
                       <h3 className="font-semibold text-slate-900 group-hover:text-slate-700">{vacancy.title}</h3>
                       <p className="text-sm text-slate-600">{vacancy.department}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      vacancy.status === 'Open' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-slate-100 text-slate-700'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${vacancy.status === 'Open'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-slate-100 text-slate-700'
+                      }`}>
                       {vacancy.status}
                     </span>
                   </div>
@@ -321,7 +350,7 @@ const RecruitmentSystem = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
-                            <button 
+                            <button
                               onClick={() => { setSelectedCandidate(candidate); setShowOfferModal(true); }}
                               className="px-3 py-1 text-xs border border-green-200 text-green-700 rounded-lg hover:bg-green-50 transition-colors"
                             >
@@ -357,11 +386,10 @@ const RecruitmentSystem = () => {
                       <h3 className="text-lg font-semibold text-slate-900">{doc.candidateName}</h3>
                       <p className="text-sm text-slate-600">{doc.position}</p>
                     </div>
-                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                      doc.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${doc.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                       doc.status === 'In Review' ? 'bg-blue-100 text-blue-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
+                        'bg-green-100 text-green-700'
+                      }`}>
                       {doc.status}
                     </span>
                   </div>
@@ -387,9 +415,8 @@ const RecruitmentSystem = () => {
                       { name: 'Medical Report', uploaded: false },
                     ].map((item, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          item.uploaded ? 'bg-green-100 border-green-300' : 'border-slate-300'
-                        }`}>
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${item.uploaded ? 'bg-green-100 border-green-300' : 'border-slate-300'
+                          }`}>
                           {item.uploaded && <CheckCircle className="w-4 h-4 text-green-600" />}
                         </div>
                         <span className="text-sm font-medium text-slate-700">{item.name}</span>
@@ -398,7 +425,7 @@ const RecruitmentSystem = () => {
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t border-slate-200">
-                    <button 
+                    <button
                       onClick={() => { setSelectedCandidate(doc); setShowDocModal(true); }}
                       className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm flex items-center justify-center gap-2"
                     >
@@ -480,7 +507,7 @@ const RecruitmentSystem = () => {
 
             <div className="p-6 space-y-4">
               <p className="text-slate-600 text-sm">Upload required documents for {selectedCandidate.candidateName}</p>
-              
+
               <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors cursor-pointer">
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                 <p className="text-sm font-medium text-slate-900">Drag and drop files here</p>
@@ -511,6 +538,203 @@ const RecruitmentSystem = () => {
           </div>
         </div>
       )}
+
+      {/* STATS */}
+      {activeTab === 'stats' && (
+        <div className="space-y-6 sm:space-y-8 animate-fadeIn">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              Workforce Analytics
+            </h2>
+            <p className="text-slate-600 mt-1 text-sm sm:text-base">
+              Attrition trends and employee attendance insights
+            </p>
+          </div>
+
+          {/* Attrition Quartile Chart */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-4">
+              Employees Left by Quartile
+            </h3>
+
+            <div className="w-full h-64 sm:h-72 md:h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={attritionData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="quartile" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="left" fill="#0f172a" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-500 mt-3">
+              Quartiles represent calendar-year segmentation of employee exits.
+            </p>
+          </div>
+
+          {/* Attendance Chart */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-4">
+              Employee Attendance Overview
+            </h3>
+
+            <div className="w-full h-72 sm:h-80 md:h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={attendanceData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 100]} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={100}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip />
+                  <Bar dataKey="attendance" fill="#334155" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Attendance Table */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-150 w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">
+                      Employee ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">
+                      Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">
+                      Role
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">
+                      Attendance %
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {attendanceData.map(emp => (
+                    <tr key={emp.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">
+                        {emp.id}
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">
+                        {emp.name}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {emp.role}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-slate-900">
+                        {emp.attendance}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* NOTICE */}
+      {activeTab === 'notice' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              HR Notices
+            </h2>
+            <p className="text-slate-600 mt-1 text-sm sm:text-base">
+              Create and manage company announcements
+            </p>
+          </div>
+
+          {/* Add Notice */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 space-y-4">
+            <h3 className="font-semibold text-slate-900">
+              Add New Notice
+            </h3>
+
+            <input
+              type="text"
+              placeholder="Notice title"
+              value={newNotice.title}
+              onChange={(e) =>
+                setNewNotice({ ...newNotice, title: e.target.value })
+              }
+              className="w-full px-4 py-2 text-sm sm:text-base border border-slate-300 rounded-lg"
+            />
+
+            <textarea
+              rows="3"
+              placeholder="Notice content"
+              value={newNotice.content}
+              onChange={(e) =>
+                setNewNotice({ ...newNotice, content: e.target.value })
+              }
+              className="w-full px-4 py-2 text-sm sm:text-base border border-slate-300 rounded-lg"
+            />
+
+            <button
+              onClick={() => {
+                if (!newNotice.title || !newNotice.content) return;
+                setNotices([
+                  ...notices,
+                  {
+                    id: Date.now(),
+                    ...newNotice,
+                    date: new Date().toISOString().split('T')[0],
+                  },
+                ]);
+                setNewNotice({ title: '', content: '' });
+              }}
+              className="w-full sm:w-auto px-6 py-2 bg-slate-900 text-white rounded-lg"
+            >
+              Publish Notice
+            </button>
+          </div>
+
+          {/* Notice List */}
+          <div className="space-y-4">
+            {notices.map(notice => (
+              <div
+                key={notice.id}
+                className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div>
+                    <h3 className="font-semibold text-slate-900">
+                      {notice.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1">
+                      {notice.content}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {notice.date}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setNotices(notices.filter(n => n.id !== notice.id))
+                    }
+                    className="text-red-600 text-sm hover:underline self-start"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       {/* Animations */}
       <style>{`
