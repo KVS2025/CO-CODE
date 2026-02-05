@@ -86,6 +86,48 @@ const RecruitmentSystem = () => {
 
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
 
+  // Offer form state
+  const [offerForm, setOfferForm] = useState({
+    salary: '',
+    startDate: '',
+    terms: ''
+  });
+
+  // Handle sending offer to candidate
+  const handleSendOffer = () => {
+    if (!offerForm.salary || !offerForm.startDate) {
+      alert('Please fill in salary and start date');
+      return;
+    }
+
+    // Update candidate status to "Offer Extended"
+    dataService.updateCandidate(selectedCandidate.id, {
+      status: 'Offer Extended',
+      stage: 'Offer',
+      offerDetails: {
+        salary: offerForm.salary,
+        startDate: offerForm.startDate,
+        terms: offerForm.terms,
+        sentDate: new Date().toISOString().split('T')[0]
+      }
+    });
+
+    // Update corresponding application
+    if (selectedCandidate.applicationId) {
+      dataService.updateApplication(selectedCandidate.applicationId, {
+        status: 'Offer Extended',
+        stage: 'Offer',
+        feedback: `Congratulations! We are pleased to extend an offer for the position of ${selectedCandidate.position}. Salary: ${offerForm.salary}, Start Date: ${offerForm.startDate}. ${offerForm.terms ? 'Terms: ' + offerForm.terms : ''}`,
+        interviewDate: null
+      });
+    }
+
+    alert(`Offer sent successfully to ${selectedCandidate.name}! The candidate will see this in their dashboard.`);
+    setShowOfferModal(false);
+    setOfferForm({ salary: '', startDate: '', terms: '' });
+    setSelectedCandidate(null);
+  };
+
 
   // ✅ FIXED: Handle adding new vacancy
   const handleAddVacancy = () => {
@@ -564,42 +606,92 @@ const RecruitmentSystem = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-900">Generate Offer Letter</h2>
+              <h2 className="text-2xl font-bold text-slate-900">Send Job Offer</h2>
               <button onClick={() => setShowOfferModal(false)} className="text-slate-600 hover:text-slate-900">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Candidate Name</label>
-                <input type="text" defaultValue={selectedCandidate.name} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Position</label>
-                <input type="text" defaultValue={selectedCandidate.position} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Salary</label>
-                  <input type="text" placeholder="$X,XXX/month" className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+                <p className="text-sm font-medium text-slate-700 mb-2">Candidate Information</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-600">Name</p>
+                    <p className="font-medium text-slate-900">{selectedCandidate.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Position</p>
+                    <p className="font-medium text-slate-900">{selectedCandidate.position}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Email</p>
+                    <p className="font-medium text-slate-900">{selectedCandidate.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Applied Date</p>
+                    <p className="font-medium text-slate-900">{selectedCandidate.appliedDate}</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                  <input type="date" className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" />
-                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Salary Offer <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., $120,000/year or ₹15,00,000/year"
+                  value={offerForm.salary}
+                  onChange={(e) => setOfferForm({ ...offerForm, salary: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Terms & Conditions</label>
-                <textarea rows="4" placeholder="Enter terms and conditions..." className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={offerForm.startDate}
+                  onChange={(e) => setOfferForm({ ...offerForm, startDate: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Additional Terms & Conditions (Optional)
+                </label>
+                <textarea
+                  rows="4"
+                  placeholder="Enter any additional terms, benefits, or conditions..."
+                  value={offerForm.terms}
+                  onChange={(e) => setOfferForm({ ...offerForm, terms: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                ></textarea>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-900">
+                  <strong>Note:</strong> Once you send this offer, the candidate will be notified immediately and can view the offer details in their dashboard.
+                </p>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-slate-200">
-                <button className="flex-1 px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium flex items-center justify-center gap-2">
+                <button
+                  onClick={handleSendOffer}
+                  className="flex-1 px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium flex items-center justify-center gap-2"
+                >
                   <FileText className="w-4 h-4" />
-                  Generate & Send
+                  Send Offer to Candidate
                 </button>
-                <button onClick={() => setShowOfferModal(false)} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium">
+                <button
+                  onClick={() => {
+                    setShowOfferModal(false);
+                    setOfferForm({ salary: '', startDate: '', terms: '' });
+                  }}
+                  className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                >
                   Cancel
                 </button>
               </div>

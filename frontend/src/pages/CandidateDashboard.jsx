@@ -50,7 +50,7 @@ const CandidateDashboard = () => {
     name: 'Jessica Martinez',
     email: 'jessica.martinez@email.com',
     phone: '+1 (555) 987-6543',
-    location: 'San Francisco, CA',
+    location: 'Delhi',
     linkedin: 'linkedin.com/in/jessicamartinez',
     github: 'github.com/jessicadev',
     portfolio: 'jessicamartinez.dev',
@@ -163,7 +163,7 @@ const CandidateDashboard = () => {
   const savedJobsList = jobListings.filter(job => savedJobs.includes(job.id));
 
   const departments = ['all', ...new Set(jobListings.map(j => j.department))];
-  const locations = ['all', 'Remote', 'New York', 'San Francisco', 'Austin', 'Boston'];
+  const locations = ['all', 'Remote', 'Noida', 'Delhi', 'Bangalore', 'Hyderabad'];
 
   const handleApply = (job) => {
     setSelectedJob(job);
@@ -551,7 +551,30 @@ const CandidateDashboard = () => {
                       </div>
                     )}
 
-                    {app.feedback && (
+                    {/* 🎉 OFFER EXTENDED - Special Display */}
+                    {app.status === 'Offer Extended' && app.feedback && (
+                      <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg mb-4 animate-pulse-slow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-green-900 mb-2">🎉 Congratulations! Offer Extended</h4>
+                            <p className="text-sm text-green-800 mb-3">{app.feedback}</p>
+                            <div className="bg-white/60 rounded-lg p-3 border border-green-200">
+                              <p className="text-xs font-semibold text-green-900 mb-1">Next Steps:</p>
+                              <ul className="text-xs text-green-800 space-y-1">
+                                <li>• Review the offer details carefully</li>
+                                <li>• Contact HR if you have any questions</li>
+                                <li>• Respond to the offer at your earliest convenience</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {app.feedback && app.status !== 'Offer Extended' && (
                       <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4">
                         <p className="text-sm font-medium text-slate-700 mb-1">Recruiter Feedback:</p>
                         <p className="text-sm text-slate-600">{app.feedback}</p>
@@ -1135,6 +1158,13 @@ const CandidateDashboard = () => {
         }
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.95; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
         }
       `}</style>
     </div>
