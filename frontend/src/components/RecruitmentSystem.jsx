@@ -99,7 +99,7 @@ const RecruitmentSystem = () => {
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">TalentFlow</h1>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Empower HR</h1>
                 <p className="text-sm text-slate-500">Recruitment Management Platform</p>
               </div>
             </div>
